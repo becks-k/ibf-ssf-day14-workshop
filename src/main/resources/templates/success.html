@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS in head of HTML -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Successfully added employee!</h1>
+    <br>
+    <table class="table">
+        <thead>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Date of Birth</th>
+            <th>Email</th>
+            <th>Phone no.</th>
+            <th>Postal Code</th>
+            <th>Salary</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td th:text="${savedEmployee.firstName}"></td>
+                <td th:text="${savedEmployee.lastName}"></td>
+                <td th:text="${#dates.format(savedEmployee.dob, 'dd-MMM-yyyy')}"></td>
+                <td th:text="${savedEmployee.email}"></td>
+                <td th:text="${savedEmployee.phoneNo}"></td>
+                <td th:text="${savedEmployee.postalCode}"></td>
+                <td th:text="${savedEmployee.salary}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <a class="btn btn-primary" href="/employees/add">Add new</a>
+    <a class="btn btn-secondary" href="/employees/list">See listing</a>
+</body>
+</html>
