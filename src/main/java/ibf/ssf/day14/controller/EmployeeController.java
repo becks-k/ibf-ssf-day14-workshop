@@ -2,6 +2,7 @@ package ibf.ssf.day14.controller;
 
 import java.io.FileNotFoundException;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import ibf.ssf.day14.model.Employee;
-import ibf.ssf.day14.repository.EmployeeRepo;
+import ibf.ssf.day14.service.EmployeeService;
 import jakarta.validation.Valid;
 
 @Controller
@@ -23,7 +24,7 @@ public class EmployeeController {
     
     // Auto instantiates class on start up
     @Autowired
-    EmployeeRepo empRepo;
+    EmployeeService empService;
 
     // localhost:<port no>/employees/add
     @GetMapping("/add")
@@ -31,7 +32,6 @@ public class EmployeeController {
         Employee employee = new Employee();
         model.addAttribute("employeeNew", employee);
         
-
         // must have employeeadd.html in resources/templates folder
         return "employeeadd"; 
     }
@@ -42,36 +42,35 @@ public class EmployeeController {
 
         if (bindings.hasErrors()) {
             return "employeeadd";
-        }
-
-        // perform operations
-        // save new data to file or database
-        // redirect to success page
-
-        else {
-            // Save new employee in repo
-            empRepo.save(employeeForm);
-
+        } else {
+            // Save new employee in redis
+            empService.addEmployee(employeeForm);
             model.addAttribute("savedEmployee", employeeForm);
             return "success";
         }
-
     }
 
     // Display employees records
     @GetMapping("/list")
     public String employeeList(Model model) {
-        List<Employee> employees = empRepo.findAllEmployees();
+        List<Employee> employees = empService.getEmployeeList();
         model.addAttribute("employees", employees);
 
         return "employeelist";
     }
 
+
     @GetMapping("/delete/{email}")
     public String deleteEmployee(@PathVariable("email") String email) {
-        Employee employee = empRepo.findByEmail(email);
-        Boolean isDeleted = empRepo.deleteEmployee(employee);
+        Optional<Employee> opt = empService.findEmployeeByEmail(email);
         
+        // System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DELETE: opt" + opt.get().toString());
+        
+        if (opt.isPresent()) {
+            Employee emp = opt.get();
+            // System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>DELETE: " + emp);
+            empService.deleteEmployee(emp);
+        }
         return "redirect:/employees/list";
     }
 }

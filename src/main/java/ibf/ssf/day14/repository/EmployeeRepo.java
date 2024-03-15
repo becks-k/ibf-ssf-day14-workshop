@@ -1,99 +1,60 @@
 package ibf.ssf.day14.repository;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import ibf.ssf.day14.model.Employee;
+import ibf.ssf.day14.util.Util;
 
 @Repository
 public class EmployeeRepo {
 
-    // save location
-    final String dirPath = "C:\\Users\\Rebekah\\Desktop\\NUS ISS Software Development\\ssf\\data";
-    // file name
-    final String fileName = "employees.txt";
+    @Autowired
+    @Qualifier(Util.T_ONE)
+    RedisTemplate<String, String> template;
 
-    private List<Employee> employees;
 
-    // EmployeeRepo constructor
-    public EmployeeRepo() throws ParseException {
+    // Return list of employees in String
+    // Deserialize in service class
+    public List<String> findAllEmployees() {
+        return template.opsForList().range(Util.KEY_EMP, 0, -1);
+    }
 
-        if (employees == null) {
-            // Instantiate employee list if variable is null
-            employees = new LinkedList<>();
+    // Add new employees
+    public void addEmployee(String employee) {
+        template.opsForList().rightPush(Util.KEY_EMP, employee);
+    }
+
+    // Get index of employee
+    public Long getIndexEmployee(String employee) {
+        Long index = -1L;
+        Optional<Long> opt = Optional.ofNullable(template.opsForList().indexOf(Util.KEY_EMP, employee));
+        if (opt.isPresent()) {
+            index = opt.get();
         }
-
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        Date dob = df.parse("1977-02-31");
-        Employee emp = new Employee("James", "Tong", dob, "j.tong@gmail.com", "91234567", 1500, 556432);
-        employees.add(emp);
-
-        dob = df.parse("1900-01-01");
-        emp = new Employee("Kenny", "Lim", dob, "klim@gmail.com", "98888888", 10000, 555555);
-        employees.add(emp);
+        // System.out.println(">>>>>>>>>>>>>>>>> INDEX:" + index);
+        return index;
     }
 
-    // Return list of employees
-    public List<Employee> findAllEmployees() {
-        return employees;
-    }
-
-    // Save data to file
-    public Boolean save(Employee employee) throws FileNotFoundException {
-
-        Boolean isSaved = false;
-
-        // Add new employee record to employees list
-        employees.add(employee);
-
-        File file = new File(dirPath + "/" + fileName);
-        OutputStream os = new FileOutputStream(file, true); // adds on to file vs overwrite file
-        PrintWriter bw = new PrintWriter(os);
-        bw.write(employee.toString());
-        bw.write("\n");
-        bw.flush();
-        bw.close();
-
-        
-        isSaved = true;
-        return isSaved;
-    }
-
-    // Find employee by email
-    public Employee findByEmail(String email) {
-        //get casts stream to employee object
-        Employee retrievedEmployee = employees.stream()
-            .filter(emp -> emp.getEmail().equals(email))
-            .findFirst()
-            .get(); //.get() is an Optional that returns a non null object
-
-
-        return retrievedEmployee;
+    // Update employee details
+    public void updateEmployee(String employee) {
+        if (getIndexEmployee(employee) != -1)
+        template.opsForList().set(Util.KEY_EMP, getIndexEmployee(employee), employee);
     }
 
     // Delete employee data
-    public Boolean deleteEmployee(Employee employee) {
-        Boolean isDeleted = false;
-        
-        int empIndex = employees.indexOf(employee);
-        // -1 means not found in list 
-        if (empIndex > 0) {
-            employees.remove(empIndex);
-            isDeleted = true; 
-        }
-        
+    public void deleteEmployee(String employee) {
+        Long index = getIndexEmployee(employee);
+        if (index != -1)
+        template.opsForList().remove(Util.KEY_EMP, 1, employee);
+    }
 
-        return isDeleted;
+    // No. of employees
+    public Long getNoEmployees() {
+        return template.opsForList().size(Util.KEY_EMP);
     }
 }

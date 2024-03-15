@@ -10,4 +10,6 @@ public class Day14Application {
 		SpringApplication.run(Day14Application.class, args);
 	}
 
+	
+
 }

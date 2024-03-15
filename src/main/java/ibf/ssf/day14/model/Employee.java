@@ -1,6 +1,9 @@
 package ibf.ssf.day14.model;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -18,7 +21,7 @@ public class Employee {
     private String id;
 
     @NotBlank(message = "First name is mandatory")
-    @Size(min = 5, max = 15, message = "First name must be between 5 and 15 characters")
+    @Size(min = 2, max = 15, message = "First name must be between 5 and 15 characters")
     private String firstName;
 
     @NotBlank(message = "Last name is mandatory")
@@ -48,6 +51,7 @@ public class Employee {
     private Integer salary;
 
     public Employee() {
+        this.id = UUID.randomUUID().toString();
     }
 
     public Employee(String firstName, String lastName, Date dob, String email, String phoneNo, Integer salary, Integer postalCode) {
@@ -124,11 +128,16 @@ public class Employee {
         this.postalCode = postalCode;
     }
 
+    public String dateToString(Date date) {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        return df.format(date);
+
+    }
+
     // Changed to comma seperated value
     @Override
     public String toString() {
-        return "id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", dob=" + dob
-                + ", email=" + email + ", phoneNo=" + phoneNo + ", postalCode=" + postalCode + ", salary=" + salary;
+        return id + "," + firstName + "," + lastName + "," + dateToString(dob) + "," + email + "," + phoneNo + "," + postalCode + "," + salary;
     }
 
     @Override
